@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -23,7 +25,8 @@ public class User {
     		cascade = CascadeType.ALL,
     		orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
-    
+
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private Set<Collaborator> collaborations;
     

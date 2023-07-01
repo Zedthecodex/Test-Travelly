@@ -1,6 +1,7 @@
 package com.WebApp.demo.model;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,6 +19,9 @@ public class Trip {
 	@JsonIgnore
 	@OneToMany(mappedBy = "trip")
 	private Set<Collaborator> collaborators;
+	
+	@OneToMany(mappedBy = "trip")
+	private Set<Flight> flights;
 	
 	@Column(name = "title")
 	private String title;
@@ -77,6 +81,26 @@ public class Trip {
 
 	public void setEndDate(LocalDate endDate) {
 		this.endDate = endDate;
+	}
+	
+    public User getOwner() {
+    	 for (Collaborator collaborator : collaborators) {
+    	        if (collaborator.getAccessLevel().equals("Owner")) {
+    	            return collaborator.getUser();
+    	        }
+    	    }
+  
+
+        return null; // or throw an exception if an owner is required
+    }
+    
+
+	public Set<Flight> getFlights() {
+		return flights;
+	}
+
+	public void setFlights(Set<Flight> flights) {
+		this.flights = flights;
 	}
 
 
