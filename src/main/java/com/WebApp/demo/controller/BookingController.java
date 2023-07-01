@@ -1,6 +1,5 @@
 package com.WebApp.demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,30 +7,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.WebApp.demo.model.Booking;
 import com.WebApp.demo.model.Collaborator;
 import com.WebApp.demo.model.Flight;
 import com.WebApp.demo.model.Trip;
 import com.WebApp.demo.model.User;
-import com.WebApp.demo.repository.FlightRepository;
+import com.WebApp.demo.repository.BookingRepository;
 import com.WebApp.demo.repository.TripRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/flights")
-public class FlightController {
-
+@RequestMapping("/bookings")
+public class BookingController {
+	
 	@Autowired
-	FlightRepository flightRepository;
+	BookingRepository bookingRepository;
 	
 	@Autowired
 	TripRepository tripRepository;
-	
+
 	@PostMapping("/{tripId}")
-	public ResponseEntity<String> addFlightToTrip(
+	public ResponseEntity<String> addBookingToTrip(
 			@PathVariable Long tripId,
-			@RequestBody Flight flight,
+			@RequestBody Booking booking,
 			HttpSession session
 			){
 		Trip trip = tripRepository.findById(tripId)
@@ -61,36 +61,36 @@ public class FlightController {
 			 throw new RuntimeException("User " + collaborator.getAccessLevel()  + "access level is only at Viewer, can't make changes");
 		}
 		
+		booking.setTrip(trip);
+		bookingRepository.save(booking);
 		
-		flight.setTrip(trip);
-		flightRepository.save(flight);
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body("Flight added to trip successfully");
+		return ResponseEntity.status(HttpStatus.CREATED).body("Booking added to trip successfully");
 	
 	}
 	
 	@GetMapping("/{tripid}")
-	public ResponseEntity<List<Flight>> getFlightsByTripId(
+	public ResponseEntity<List<Booking>> getBookingByTripId(
 			@PathVariable Long tripId)
 	{
 		Trip trip = tripRepository.findById(tripId)
 	            .orElseThrow(() -> new EntityNotFoundException("Trip not found"));
 
-	    List<Flight> flights = flightRepository.findByTrip(trip);
+	    List<Booking> bookings = bookingRepository.findByTrip(trip);
 
-	    return ResponseEntity.ok(flights);
+	    return ResponseEntity.ok(bookings);
 	}
 	
-	@DeleteMapping("/delete/{tripId}/{flightId}")
-	public ResponseEntity<String> deleteFlight(@PathVariable Long flightId,
+	@DeleteMapping("/delete/{tripId}/{bookingId}")
+	public ResponseEntity<String> deleteFlight(@PathVariable Long bookingId,
 			@PathVariable Long tripId,
 			HttpSession session) {
 	    
 		Trip trip = tripRepository.findById(tripId)
 				.orElseThrow(() -> new  EntityNotFoundException("Trip not found"));
 		
-		Flight flight = flightRepository.findById(flightId)
-	            .orElseThrow(() -> new EntityNotFoundException("Flight not found"));
+		Booking booking = bookingRepository.findById(bookingId)
+	            .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
 
 
 		User currentUser = (User) session.getAttribute("user");
@@ -109,28 +109,26 @@ public class FlightController {
 			 throw new RuntimeException("User " + collaborator.getAccessLevel()  + "access level is only at Viewer, can't make changes");
 		}
 		
-	    flightRepository.delete(flight);
+	    bookingRepository.delete(booking);
 
-	    return ResponseEntity.ok("Flight deleted successfully");
+	    return ResponseEntity.ok("Booking deleted successfully");
 	}
 	
-	@PutMapping("/update/{flightId}")
-	public ResponseEntity<String> updateFlight(
-	        @PathVariable Long flightId,
-	        @RequestBody Flight updatedFlight
+	@PutMapping("/update/{bookingId}")
+	public ResponseEntity<String> updateBooking(
+	        @PathVariable Long bookingId,
+	        @RequestBody Booking updatedBooking
 	) {
-	    Flight flight = flightRepository.findById(flightId)
-	            .orElseThrow(() -> new EntityNotFoundException("Flight not found"));
+	    Booking booking = bookingRepository.findById(bookingId)
+	            .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
 
-	    flight.setAirline(updatedFlight.getAirline());
-	    flight.setDepartureCity(updatedFlight.getDepartureCity());
-	    flight.setArrivalCity(updatedFlight.getArrivalCity());
-	    flight.setDepartureDate(updatedFlight.getDepartureDate());
-	    flight.setArrivalDate(updatedFlight.getArrivalDate());
+	    booking.setBookingType(updatedBooking.getBookingType());
+	    booking.setBookingDetails(updatedBooking.getBookingDetails());
+	    booking.setCosts(updatedBooking.getCosts());
+	   
+	    bookingRepository.save(booking);
 
-	    flightRepository.save(flight);
-
-	    return ResponseEntity.ok("Flight updated successfully");
+	    return ResponseEntity.ok("Booking updated successfully");
 	}
 	
 }

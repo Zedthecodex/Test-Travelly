@@ -1,6 +1,5 @@
 package com.WebApp.demo.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,28 +9,29 @@ import org.springframework.web.bind.annotation.*;
 
 import com.WebApp.demo.model.Collaborator;
 import com.WebApp.demo.model.Flight;
+import com.WebApp.demo.model.Hotel;
 import com.WebApp.demo.model.Trip;
 import com.WebApp.demo.model.User;
-import com.WebApp.demo.repository.FlightRepository;
+import com.WebApp.demo.repository.HotelRepository;
 import com.WebApp.demo.repository.TripRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/flights")
-public class FlightController {
+@RequestMapping("/hotels")
+public class HotelController {
 
-	@Autowired
-	FlightRepository flightRepository;
+	@Autowired 
+	HotelRepository hotelRepository;
 	
 	@Autowired
 	TripRepository tripRepository;
 	
 	@PostMapping("/{tripId}")
-	public ResponseEntity<String> addFlightToTrip(
+	public ResponseEntity<String> addHotelToTrip(
 			@PathVariable Long tripId,
-			@RequestBody Flight flight,
+			@RequestBody Hotel hotel,
 			HttpSession session
 			){
 		Trip trip = tripRepository.findById(tripId)
@@ -61,36 +61,37 @@ public class FlightController {
 			 throw new RuntimeException("User " + collaborator.getAccessLevel()  + "access level is only at Viewer, can't make changes");
 		}
 		
+		hotel.setTrip(trip);
+		hotelRepository.save(hotel);
+	
 		
-		flight.setTrip(trip);
-		flightRepository.save(flight);
-		
-		return ResponseEntity.status(HttpStatus.CREATED).body("Flight added to trip successfully");
+		return ResponseEntity.status(HttpStatus.CREATED).body("Hotel added to trip successfully");
 	
 	}
 	
 	@GetMapping("/{tripid}")
-	public ResponseEntity<List<Flight>> getFlightsByTripId(
+	public ResponseEntity<List<Hotel>> getHotelsByTripId(
 			@PathVariable Long tripId)
 	{
 		Trip trip = tripRepository.findById(tripId)
 	            .orElseThrow(() -> new EntityNotFoundException("Trip not found"));
 
-	    List<Flight> flights = flightRepository.findByTrip(trip);
+		List<Hotel> hotels = hotelRepository.findByTrip(trip);
+	
 
-	    return ResponseEntity.ok(flights);
+	    return ResponseEntity.ok(hotels);
 	}
 	
-	@DeleteMapping("/delete/{tripId}/{flightId}")
-	public ResponseEntity<String> deleteFlight(@PathVariable Long flightId,
+	@DeleteMapping("/delete/{tripId}/{hotelId}")
+	public ResponseEntity<String> deleteHotel(@PathVariable Long hotelId,
 			@PathVariable Long tripId,
 			HttpSession session) {
 	    
 		Trip trip = tripRepository.findById(tripId)
 				.orElseThrow(() -> new  EntityNotFoundException("Trip not found"));
 		
-		Flight flight = flightRepository.findById(flightId)
-	            .orElseThrow(() -> new EntityNotFoundException("Flight not found"));
+		Hotel hotel = hotelRepository.findById(hotelId)
+	            .orElseThrow(() -> new EntityNotFoundException("Hotel not found"));
 
 
 		User currentUser = (User) session.getAttribute("user");
@@ -109,28 +110,26 @@ public class FlightController {
 			 throw new RuntimeException("User " + collaborator.getAccessLevel()  + "access level is only at Viewer, can't make changes");
 		}
 		
-	    flightRepository.delete(flight);
+	    hotelRepository.delete(hotel);
 
-	    return ResponseEntity.ok("Flight deleted successfully");
+	    return ResponseEntity.ok("Hotel deleted successfully");
 	}
 	
-	@PutMapping("/update/{flightId}")
-	public ResponseEntity<String> updateFlight(
-	        @PathVariable Long flightId,
-	        @RequestBody Flight updatedFlight
+	@PutMapping("/update/{hotelId}")
+	public ResponseEntity<String> updateHotel(
+	        @PathVariable Long hotelId,
+	        @RequestBody Hotel updatedHotel
 	) {
-	    Flight flight = flightRepository.findById(flightId)
-	            .orElseThrow(() -> new EntityNotFoundException("Flight not found"));
+	    Hotel hotel = hotelRepository.findById(hotelId)
+	            .orElseThrow(() -> new EntityNotFoundException("Hotel not found"));
 
-	    flight.setAirline(updatedFlight.getAirline());
-	    flight.setDepartureCity(updatedFlight.getDepartureCity());
-	    flight.setArrivalCity(updatedFlight.getArrivalCity());
-	    flight.setDepartureDate(updatedFlight.getDepartureDate());
-	    flight.setArrivalDate(updatedFlight.getArrivalDate());
-
-	    flightRepository.save(flight);
-
-	    return ResponseEntity.ok("Flight updated successfully");
+	    hotel.setName(updatedHotel.getName());
+	    hotel.setAddress(updatedHotel.getAddress());
+	    hotel.setCheckInDate(updatedHotel.getCheckInDate());
+	    hotel.setCheckOutDate(updatedHotel.getCheckOutDate());
+	    
+	    hotelRepository.save(hotel);
+	    
+	    return ResponseEntity.ok("Hotel updated successfully");
 	}
-	
 }
